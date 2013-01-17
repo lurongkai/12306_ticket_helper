@@ -42,11 +42,11 @@
 ####在Chrome/[猎豹]上安装
 [Chrome]下可以直接安装。直接打开 [助手主页](http://www.fishlee.net/soft/44/)，在**下载**一节中点击**通用版本**后（如果您实在木有找到，也可以直接[点击这里安装](http://www.fishlee.net/Service/Download.ashx/44/47/12306_ticket_helper.user.js)），Chrome将会在浏览器下方的下载区域通知进行安装：
 
-![Chrome安装提示1](https://github.com/iccfish/12306_ticket_helper/raw/master/images/installation/chrome_1.png)
+![Chrome安装提示1](https://raw.github.com/lurongkai/12306_ticket_helper/master/images/installation/chrome_1.png)
 
 点击『继续』后，在弹出的对话框中继续点击『安装』。安装完成后即可。
 
-![Chrome安装提示2](https://github.com/iccfish/12306_ticket_helper/raw/master/images/installation/chrome_2.png)
+![Chrome安装提示2](https://raw.github.com/lurongkai/12306_ticket_helper/master/images/installation/chrome_2.png)
 
 
 如果您未能看到安装提示，而是提示了下载或其它内容，请确认您的浏览器版本较新。
