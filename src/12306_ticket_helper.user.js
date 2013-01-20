@@ -12,8 +12,8 @@
 // @require			http://lib.sinaapp.com/js/jquery/1.8.3/jquery.min.js
 // @icon			http://www.12306.cn/mormhweb/images/favicon.ico
 // @run-at			document-idle
-// @version 		4.2.8
-// @updateURL		http://www.fishlee.net/Service/Download.ashx/44/47/12306_ticket_helper.user.js
+// @version 		4.3.1
+// @updateURL		http://static.liebao.cn/_softdownload/12306_ticket_helper.user.js
 // @supportURL		http://www.fishlee.net/soft/44/
 // @homepage		http://www.fishlee.net/soft/44/
 // @contributionURL	https://me.alipay.com/imfish
@@ -22,7 +22,7 @@
 
 //=======START=======
 
-var version = "4.2.8";
+var version = "4.3.1";
 var updates = [
 	"更新了什么？你懂的"
 ];
@@ -495,10 +495,10 @@ var utility = {
 	},
 	getAudioUrl: function () {
 		/// <summary>获得音乐地址</summary>
-		return window.localStorage["audioUrl"] || (navigator.userAgent.indexOf("Firefox") != -1 ? "http://static.fishlee.net/resources/audio/song.ogg" : "http://static.fishlee.net/resources/audio/song.ogg");
+		return window.localStorage["audioUrl"] || (navigator.userAgent.indexOf("Firefox") != -1 ? "http://static.liebao.cn/resources/audio/song.ogg" : "http://static.liebao.cn/resources/audio/song.ogg");
 	},
 	getFailAudioUrl: function () {
-		return (utility.isWebKit() ? "http://static.fishlee.net/resources/audio/" : "http://static.fishlee.net/resources/audio/") + "music3.ogg";
+		return (utility.isWebKit() ? "http://static.liebao.cn/resources/audio/" : "http://static.liebao.cn/resources/audio/") + "music3.ogg";
 	},
 	playFailAudio: function () {
 		if (!window.Audio) return;
@@ -803,6 +803,10 @@ var utility = {
 			return;
 		}
 
+		if (location.search.indexOf("?method=initUsualPassenger") == -1) {
+			return [];
+		}
+
 		//开始加载所有乘客
 		utility.allPassengers = [];
 		var pageIndex = 0;
@@ -961,12 +965,12 @@ var utility = {
 	},
 	getUpdateUrl: function () {
 		var ua = navigator.userAgent;
-		if (ua.indexOf(" SE ") > 0) return "http://www.fishlee.net/Service/Download.ashx/44/68/12306_ticket_helper.sext";
-		else if (ua.indexOf("Maxthon") > 0) return "http://www.fishlee.net/Service/Download.ashx/44/62/mxaddon.mxaddon";
-		else if (ua.indexOf("LBBROWSER") > 0) return "http://www.fishlee.net/Service/Download.ashx/44/69/12306_ticket_helper_for_liebaobrowser.crx";
-		else if (ua.indexOf("TaoBrowser") > 0) return "http://www.fishlee.net/Service/Download.ashx/44/65/12306_ticket_helper_for_taobrowser.crx";
-		else if (ua.indexOf("Firefox") > 0) return "http://www.fishlee.net/Service/Download.ashx/44/47/12306_ticket_helper.user.js";
-		else return "http://www.fishlee.net/Service/Download.ashx/44/63/12306_ticket_helper.crx";
+		if (ua.indexOf(" SE ") > 0) return "http://static.liebao.cn/_softdownload/32c8a36d-18f5-4600-9913-c7b83f484ee2.sext";
+		else if (ua.indexOf("Maxthon") > 0) return "http://static.liebao.cn/_softdownload/12306_ticket_assistant_for_maxthon3.mxaddon";
+		else if (ua.indexOf("LBBROWSER") > 0) return "http://static.liebao.cn/_softdownload/9d0d790e-d78f-43b3-8e4a-34f7ec57e851.crx";
+		else if (ua.indexOf("TaoBrowser") > 0) return "http://static.liebao.cn/_softdownload/12306_ticket_helper_for_taobrowser.crx";
+		else if (ua.indexOf("Firefox") > 0) return "http://static.liebao.cn/_softdownload/12306_ticket_helper.user.js";
+		else return "http://static.liebao.cn/_softdownload/12306_ticket_helper.crx";
 
 	}
 }
@@ -1184,7 +1188,7 @@ function initNotCompleteOrderPage() {
 			var flag = flags.shift();
 			flags.push(flag);
 
-			utility.get("https://dynamic.12306.cn/otsweb/order/myOrderAction.do?method=getOrderWaitTime&tourFlag=" + flag, null, "json", function (data) {
+			utility.get("https://dynamic.12306.cn/otsweb/order/myOrderAction.do?method=queryOrderWaitTime&tourFlag=" + flag, null, "json", function (data) {
 				var obj = $("#status_" + flag);
 				if (data.waitTime == 0 || data.waitTime == -1) {
 					obj.css({ "color": "green" }).html("订票成功！");
@@ -1420,13 +1424,28 @@ function initAutoCommitOrder() {
 				return;
 			}
 
-			submitConfirmOrder();
+			setTimeout(submitConfirmOrder, 2000 + Math.random() * 1000);
 		}, function () { utility.delayInvoke(null, queryLeftTickets, 2000); });
 	}
 
 	function submitConfirmOrder() {
+		var url;
+		if (tourFlag == 'dc') {
+			// 异步下单-单程
+			url = 'confirmPassengerAction.do?method=confirmSingleForQueueOrder';
+		} else if (tourFlag == 'wc') {
+			// 异步下单-往程
+			url = 'confirmPassengerAction.do?method=confirmPassengerInfoGoForQueue';
+		} else if (tourFlag == 'fc') {
+			// 异步下单-返程
+			url = 'confirmPassengerAction.do?method=confirmPassengerInfoBackForQueue';
+		} else if (tourFlag == 'gc') {
+			// 异步下单-改签
+			url = 'confirmPassengerResignAction.do?method=confirmPassengerInfoResignForQueue';
+		}
+
 		jQuery.ajax({
-			url: '/otsweb/order/confirmPassengerAction.do?method=confirmSingleForQueueOrder',
+			url: url,
 			data: $('#confirmPassenger').serialize(),
 			type: "POST",
 			timeout: 10000,
@@ -1497,7 +1516,7 @@ function initAutoCommitOrder() {
 		setCurOperationInfo(true, "订单提交成功, 正在等待队列完成操作....");
 
 		$.ajax({
-			url: '/otsweb/order/myOrderAction.do?method=getOrderWaitTime&tourFlag=' + tourFlag + '&' + Math.random(),
+			url: '/otsweb/order/myOrderAction.do?method=queryOrderWaitTime&tourFlag=' + tourFlag + '&' + Math.random(),
 			data: {},
 			type: 'GET',
 			timeout: 10000,
@@ -1541,7 +1560,7 @@ function initAutoCommitOrder() {
 						utility.notifyOnTop("警告！排队时间大于30分钟，成功率较低，请尽快电话订票或用小号重新排队！");
 					}
 
-					utility.delayInvoke("#countEle", waitingForQueueComplete, 1000);
+					utility.delayInvoke("#countEle", waitingForQueueComplete, 3000);
 				}
 			},
 			error: function (json) {
@@ -1578,7 +1597,7 @@ function initAutoCommitOrder() {
 	}
 
 	//进度提示框
-	$("table.table_qr tr:last").before("<tr><td style='border-top:1px dotted #ccc;height:100px;' colspan='9' id='orderCountCell'></td></tr><tr><td style='border-top:1px dotted #ccc;' colspan='9'><ul id='tipScript'>" +
+	$("table.table_qr tr:last").before("<tr style='display:none;'><td style='border-top:1px dotted #ccc;height:100px;' colspan='9' id='orderCountCell'></td></tr><tr><td style='border-top:1px dotted #ccc;' colspan='9'><ul id='tipScript'>" +
 	"<li class='fish_clock' id='countEle' style='font-weight:bold;'>等待操作</li>" +
 	"<li style='color:green;'><strong>操作信息</strong>：<span>休息中</span></li>" +
 	"<li style='color:green;'><strong>最后操作时间</strong>：<span>--</span></li></ul></td></tr>");
@@ -1700,7 +1719,7 @@ function initAutoCommitOrder() {
 			checkCountStopped = true;
 		}
 
-		beginCheck();
+		//beginCheck();
 	})();
 
 	//#endregion
@@ -1938,7 +1957,7 @@ function initTicketQuery() {
 <tr class='fish_sep musicFunc' id='helperbox_bottom'><td class='name'>自定义音乐地址</td><td colspan='3'><input type='text' id='txtMusicUrl' value='" + utility.getAudioUrl() + "' onfocus='this.select();' style='width:50%;' /> <input type='button' onclick='new Audio(document.getElementById(\"txtMusicUrl\").value).play();' value='测试'/><input type='button' onclick='utility.resetAudioUrl(); document.getElementById(\"txtMusicUrl\").value=utility.getAudioUrl();' value='恢复默认'/> (地址第一次使用可能会需要等待一会儿)</td></tr>\
 <tr class='fish_sep musicFunc'><td class='name'>可用音乐地址</td><td colspan='3'>");
 
-	var host1 = "http://static.fishlee.net/resources/audio/";
+	var host1 = "http://static.liebao.cn/resources/audio/";
 	//var host2 = "https://github.com/mbin/12306_ticket_helper/raw/master/res/";
 	var musics = [["music1.ogg", "超级玛丽"], ["music2.ogg", "蓝精灵"]];
 	$.each(musics, function () {
@@ -3761,7 +3780,7 @@ if (location.pathname == "/otsweb/" || location.pathname == "/otsweb/main.jsp") 
 		//firefox 专用检测代码
 		GM_xmlhttpRequest({
 			method: "GET",
-			url: "http://www.fishlee.net/service/update/44/version.js",
+			url: "http://static.liebao.cn/_softupdate/44/version.js",
 			onload: function (o) {
 				eval(o.responseText);
 
@@ -3777,13 +3796,13 @@ if (location.pathname == "/otsweb/" || location.pathname == "/otsweb/main.jsp") 
 
 				console.log("[INFO] 更新检查：当前助手版本=" + version + "，新版本=" + version_12306_helper);
 				if (compareVersion(version, version_12306_helper) < 0 && confirm("订票助手已发布新版 【" + version_12306_helper + "】，为了您的正常使用，请及时更新!是否立刻更新？\n\n本次更新内容如下：\n" + version_updater.join("\n"))) {
-					GM_openInTab("http://www.fishlee.net/Service/Download.ashx/44/47/12306_ticket_helper.user.js", true, true);
+					GM_openInTab("http://static.liebao.cn/_softdownload/12306_ticket_helper.user.js", true, true);
 				}
 			}
 		});
 	} else {
 		unsafeInvoke(function () {
-			$("body").append('<iframe id="checkVersion" width="0" height="0" style="visibility:hidden;" src="http://static.fishlee.net/content/scriptProxy.html?script=http://static.fishlee.net/content/images/apps/cn12306/checkVersion.js&v=' + window.helperVersion + '"></iframe>');
+			$("body").append('<iframe id="checkVersion" width="0" height="0" style="visibility:hidden;" src="http://static.liebao.cn/content/scriptProxy.html?script=http://static.liebao.cn/content/images/apps/cn12306/checkVersion.js&v=' + window.helperVersion + '"></iframe>');
 		});
 	}
 }
