@@ -12,7 +12,7 @@
 // @require			http://lib.sinaapp.com/js/jquery/1.8.3/jquery.min.js
 // @icon			http://www.12306.cn/mormhweb/images/favicon.ico
 // @run-at			document-idle
-// @version 		4.3.1
+// @version 		4.3.3
 // @updateURL		http://static.liebao.cn/_softdownload/12306_ticket_helper.user.js
 // @supportURL		http://www.fishlee.net/soft/44/
 // @homepage		http://www.fishlee.net/soft/44/
@@ -22,7 +22,7 @@
 
 //=======START=======
 
-var version = "4.3.1";
+var version = "4.3.3";
 var updates = [
 	"更新了什么？你懂的"
 ];
@@ -196,10 +196,14 @@ function injectDom() {
 		}
 	});
 	$("#unReg, a.reSignHelper").live("click", function () {
+		if (utility.regInfo.result == 0) {
 		if (!confirm("确定要重新注册吗?")) return;
 
 		utility.setSnInfo("", "");
 		utility.getTopWindow().location.reload();
+		} else {
+			utility.getTopWindow().utility.showOptionDialog("tabReg");
+		}
 	});
 
 	//初始化设置
@@ -262,11 +266,11 @@ function injectDom() {
 	} else {
 		opt.find(".regTable").show();
 
-		if (location.pathname == "/otsweb/" || location.pathname == "/otsweb/main.jsp") {
-			alert("为了阻止地球人趁火打劫然后拿着老衲免费奉献的东东去卖钱，贫僧斗胆麻烦客官……啊不，施主注册下下，一下子就好了啦！");
-			window.open("http://www.fishlee.net/Apps/Cn12306/GetNormalRegKey");
-			utility.showOptionDialog("tabReg");
-		}
+		//if (location.pathname == "/otsweb/" || location.pathname == "/otsweb/main.jsp") {
+		//	alert("为了阻止地球人趁火打劫然后拿着老衲免费奉献的东东去卖钱，贫僧斗胆麻烦客官……啊不，施主注册下下，一下子就好了啦！");
+		//	window.open("http://www.fishlee.net/Apps/Cn12306/GetNormalRegKey");
+		//	utility.showOptionDialog("tabReg");
+		//}
 	}
 	utility.regInfo = result;
 }
@@ -705,37 +709,29 @@ var utility = {
 		utility.addCookie("helper.regSn", sn, 999);
 	},
 	verifySn: function (skipTimeVerify, name, sn) {
-		name = "mbin";
-		sn = "mbin";
-		//if (!name && sn) return utility.verifySn2(skipTimeVerify, sn);
-		//if (!name || !sn) return { result: -4, msg: "未注册" };
+		name = name || utility.getPref("helper.regUser") || utility.getCookie("helper.regUser");
+		sn = sn || utility.getPref("helper.regSn") || utility.getCookie("helper.regSn");
+		if (!name && sn) return utility.verifySn2(skipTimeVerify, sn);
+		if (!name || !sn) return { result: -4, msg: "未注册", name: "订票助手用户", typeDesc: "正式版" };
 
-		//utility.setSnInfo(name, sn);
+		utility.setSnInfo(name, sn);
 
-		//var args = sn.split(',');
-		//if (!skipTimeVerify) {
-		//	if ((new Date() - args[0]) / 60000 > 5) {
-		//		return { result: -1, msg: "序列号注册已失效" };
-		//	}
-		//}
-		//var agent = navigator.userAgent;
-		//var key = 0;
-		//for (var i = 0; i < agent.length; i++) {
-		//	key = (key + agent.charCodeAt(i)) % 7;
-		//}
-		//if (key != parseInt(args[1])) {
-		//	return { result: -2, msg: "内部错误" };
-		//}
-		//var dec = [];
-		//var encKey = args[0] + args[1];
-		//var j = 0;
-		//for (var i = 0; i < args[2].length; i += 4) {
-		//	dec.push(String.fromCharCode(parseInt(args[2].substr(i, 4), 16) ^ encKey.charCodeAt(j)));
-		//	j++;
-		//	if (j >= encKey.length) j = 0;
-		//}
-		var data;
-		data = { result: null, type: "NRML", name: "mbin" };
+		var args = sn.split(',');
+		if (!skipTimeVerify) {
+			if ((new Date() - args[0]) / 60000 > 5) {
+				return { result: -1, msg: "序列号注册已失效" };
+			}
+		}
+		var dec = [];
+		var encKey = args[0] + args[1];
+		var j = 0;
+		for (var i = 0; i < args[2].length; i += 4) {
+			dec.push(String.fromCharCode(parseInt(args[2].substr(i, 4), 16) ^ encKey.charCodeAt(j)));
+			j++;
+			if (j >= encKey.length) j = 0;
+		}
+		var data = dec.join("");
+		data = { result: null, type: data.substring(0, 4), name: data.substring(4) };
 		data.result = data.name == name ? 0 : -3;
 		data.msg = data.result == 0 ? "成功验证" : "注册无效"
 		data.typeDesc = data.type == "NRML" ? "正式版" : (data.type == "GROP" ? "内部版, <span style='color:blue;'>感谢您参与我们之中</span>!" : "<span style='color:red;'>捐助版, 非常感谢您的支持</span>!");
@@ -803,9 +799,8 @@ var utility = {
 			return;
 		}
 
-		if (location.search.indexOf("?method=initUsualPassenger") == -1) {
-			return [];
-		}
+		var tw = utility.getTopWindow();
+		if (tw != self) return tw.utility.getAllPassengers(callback, ignoreLocalCache);
 
 		//开始加载所有乘客
 		utility.allPassengers = [];
@@ -986,7 +981,7 @@ function unsafeInvoke(callback) {
 function buildCallback(callback) {
 	var content = "";
 	if (!utility_emabed) {
-		content += "if(typeof(window.utility)!='undefined' && navigator.userAgent.indexOf('Maxthon')==-1){ alert('我勒个去! 检测到您似乎同时运行了两只助手! 请转到『附加组件管理『（Firefox）或『扩展管理』（Chrome）中卸载老版本的助手！');}; \r\nwindow.utility=" + buildObjectJavascriptCode(utility) + "; window.utility.init();window.helperVersion='" + version + "';\r\n";
+		content += "window.helperVersion='" + version + "'; if(typeof(window.utility)!='undefined' && navigator.userAgent.indexOf('Maxthon')==-1){ alert('我勒个去! 检测到您似乎同时运行了两只助手! 请转到『附加组件管理『（Firefox）或『扩展管理』（Chrome）中卸载老版本的助手！');}; \r\nwindow.utility=" + buildObjectJavascriptCode(utility) + "; window.utility.init();\r\n";
 		utility_emabed = true;
 	}
 	content += "window.__cb=" + buildObjectJavascriptCode(callback) + ";\r\n\
@@ -1066,7 +1061,7 @@ function entryPoint() {
 
 	utility.regInfo = utility.verifySn(true);
 	if (utility.regInfo.result != 0) {
-		return;
+		//return;
 	}
 
 	//
@@ -1075,7 +1070,7 @@ function entryPoint() {
 		//登录页
 		unsafeInvoke(initLogin);
 	}
-	if (utility.regInfo.bindAcc && localStorage.getItem("_sessionuser") && utility.regInfo.bindAcc.length > 0 && utility.regInfo.bindAcc[0] && utility.regInfo.bindAcc[0] != "*") {
+	if (false && utility.regInfo.bindAcc && localStorage.getItem("_sessionuser") && utility.regInfo.bindAcc.length > 0 && utility.regInfo.bindAcc[0] && utility.regInfo.bindAcc[0] != "*") {
 		var user = localStorage.getItem("_sessionuser");
 		var ok = false;
 		for (var i = 0; i < utility.regInfo.bindAcc.length; i++) {
@@ -2504,10 +2499,6 @@ function initTicketQuery() {
 	})();
 	//#endregion
 
-	//#region 默认加入拦截Ajax缓存
-	(function () { $.ajaxSetup({ cache: false }); })();
-	//#endregion
-
 	//#region 显示所有的乘客
 	var list_autoorder = null;
 	var list_blacklist = null;
@@ -3654,12 +3645,12 @@ function initLogin() {
 	function relogin() {
 		if (inRunning) return;
 
-		var user = $("#UserName").val();
-		if (!user) return;
-		if (utility.regInfo.bindAcc && utility.regInfo.bindAcc.length && utility.regInfo.bindAcc[0] && $.inArray(user, utility.regInfo.bindAcc) == -1 && utility.regInfo.bindAcc[0] != "*") {
-			alert("很抱歉，12306订票助手的授权许可已绑定至【" + utility.regInfo.bindAcc.join() + "】，未授权用户，助手停止运行，请手动操作。\n您可以在登录页面下方的帮助区点击【重新注册】来修改绑定。");
-			return;
-		}
+		//var user = $("#UserName").val();
+		//if (!user) return;
+		//if (utility.regInfo.bindAcc && utility.regInfo.bindAcc.length && utility.regInfo.bindAcc[0] && $.inArray(user, utility.regInfo.bindAcc) == -1 && utility.regInfo.bindAcc[0] != "*") {
+		//	alert("很抱歉，12306订票助手的授权许可已绑定至【" + utility.regInfo.bindAcc.join() + "】，未授权用户，助手停止运行，请手动操作。\n您可以在登录页面下方的帮助区点击【重新注册】来修改绑定。");
+		//	return;
+		//}
 
 		count++;
 		utility.setPref("_sessionuser", $("#UserName").val());
