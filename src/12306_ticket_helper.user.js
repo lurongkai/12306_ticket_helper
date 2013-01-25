@@ -1,4 +1,4 @@
-﻿
+
 // ==UserScript==
 // @name 			12306.CN 订票助手 For Firefox&Chrome
 // @namespace		http://www.u-tide.com/fish/
@@ -12,11 +12,7 @@
 // @require			http://lib.sinaapp.com/js/jquery/1.8.3/jquery.min.js
 // @icon			http://www.12306.cn/mormhweb/images/favicon.ico
 // @run-at			document-idle
-<<<<<<< HEAD
-// @version 		4.3.3
-=======
 // @version 		4.4.2
->>>>>>> ec22ffaa0575ea7331be9479546965fa005d3f0f
 // @updateURL		http://static.liebao.cn/_softdownload/12306_ticket_helper.user.js
 // @supportURL		http://www.fishlee.net/soft/44/
 // @homepage		http://www.fishlee.net/soft/44/
@@ -26,11 +22,7 @@
 
 //=======START=======
 
-<<<<<<< HEAD
-var version = "4.3.3";
-=======
 var version = "4.4.2";
->>>>>>> ec22ffaa0575ea7331be9479546965fa005d3f0f
 var updates = [
 	"想知道更新了什么？打死我也不告诉你~"
 ];
@@ -217,17 +209,10 @@ function injectDom() {
 	});
 	$("#unReg, a.reSignHelper").live("click", function () {
 		if (utility.regInfo.result == 0) {
-<<<<<<< HEAD
-		if (!confirm("确定要重新注册吗?")) return;
-
-		utility.setSnInfo("", "");
-		utility.getTopWindow().location.reload();
-=======
 			if (!confirm("确定要重新注册吗?")) return;
 
 			utility.setSnInfo("", "");
 			utility.getTopWindow().location.reload();
->>>>>>> ec22ffaa0575ea7331be9479546965fa005d3f0f
 		} else {
 			utility.getTopWindow().utility.showOptionDialog("tabReg");
 		}
@@ -910,15 +895,10 @@ var utility = {
 			return;
 		}
 
-<<<<<<< HEAD
-		var tw = utility.getTopWindow();
-		if (tw != self) return tw.utility.getAllPassengers(callback, ignoreLocalCache);
-=======
 		//var tw = utility.getTopWindow();
 		//if (tw != self) return tw.utility.getAllPassengers(callback, ignoreLocalCache);
 		if (utility.isfeatureDisabled("pasload"))
 			return [];
->>>>>>> ec22ffaa0575ea7331be9479546965fa005d3f0f
 
 		//开始加载所有乘客
 		utility.allPassengers = [];
@@ -1099,11 +1079,7 @@ function unsafeInvoke(callback) {
 function buildCallback(callback) {
 	var content = "";
 	if (!utility_emabed) {
-<<<<<<< HEAD
-		content += "window.helperVersion='" + version + "'; if(typeof(window.utility)!='undefined' && navigator.userAgent.indexOf('Maxthon')==-1){ alert('我勒个去! 检测到您似乎同时运行了两只助手! 请转到『附加组件管理『（Firefox）或『扩展管理』（Chrome）中卸载老版本的助手！');}; \r\nwindow.utility=" + buildObjectJavascriptCode(utility) + "; window.utility.init();\r\n";
-=======
 		content += "window.helperVersion='" + version + "'; window.compVersion='" + compVersion + "'; if(typeof(window.utility)!='undefined' && navigator.userAgent.indexOf('Maxthon')==-1){ alert('我勒个去! 检测到您似乎同时运行了两只助手! 请转到『附加组件管理『（Firefox）或『扩展管理』（Chrome）中卸载老版本的助手！');}; \r\nwindow.utility=" + buildObjectJavascriptCode(utility) + "; window.utility.init();\r\n";
->>>>>>> ec22ffaa0575ea7331be9479546965fa005d3f0f
 		utility_emabed = true;
 	}
 	content += "window.__cb=" + buildObjectJavascriptCode(callback) + ";\r\n\
